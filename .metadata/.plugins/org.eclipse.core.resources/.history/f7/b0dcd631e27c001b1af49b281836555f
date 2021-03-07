@@ -1,5 +1,0 @@
-package me.helldiner.holdon.gui;
-
-public class Window extends JFrame {
-
-}

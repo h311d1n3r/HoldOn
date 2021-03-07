@@ -1,9 +1,0 @@
-package me.helldiner.holdon.net;
-
-public class NetHooks {
-
-	public byte[] onPacketReceived(byte[] packet) {
-		return packet;
-	}
-	
-}

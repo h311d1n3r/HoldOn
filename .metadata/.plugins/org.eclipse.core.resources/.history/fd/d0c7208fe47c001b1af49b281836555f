@@ -1,7 +1,0 @@
-package me.helldiner.holdon.gui;
-
-public interface IWindow {
-
-	public void setScreen();
-	
-}
