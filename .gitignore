@@ -1,0 +1,11 @@
+/.metadata/
+/app/bin/
+/app/lib/
+x64/
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+/app/.classpath
+/app/.project
