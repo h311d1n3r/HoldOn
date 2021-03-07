@@ -1,0 +1,9 @@
+package me.helldiner.holdon.load;
+
+public class AppLoader {
+
+	public AppLoader(IWindow window) {
+		
+	}
+	
+}

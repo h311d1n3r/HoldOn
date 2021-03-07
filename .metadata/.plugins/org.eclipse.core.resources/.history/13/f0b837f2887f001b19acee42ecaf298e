@@ -1,0 +1,11 @@
+package me.helldiner.holdon.hook;
+
+public class Injector {
+	
+	public Injector(String dllPath, int pid) {
+		this.inject(dllPath, pid);
+	}
+	
+	private native boolean inject(String dllPath, int pid);
+	
+}

@@ -1,0 +1,5 @@
+package me.helldiner.holdon.hook;
+
+public class Injector {
+
+}

@@ -1,0 +1,17 @@
+package me.helldiner.holdon.load;
+
+import javax.swing.JPanel;
+
+import me.helldiner.holdon.gui.IWindow;
+
+public class AppLoader {
+
+	public AppLoader(IWindow window) {
+		window.setScreen(new AppLoaderScreen());
+	}
+	
+	private class AppLoaderScreen extends JPanel {
+		
+	}
+	
+}

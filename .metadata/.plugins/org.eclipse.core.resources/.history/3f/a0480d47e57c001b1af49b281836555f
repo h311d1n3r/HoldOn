@@ -1,0 +1,25 @@
+package me.helldiner.holdon.load;
+
+import java.awt.Graphics;
+
+import javax.swing.JPanel;
+
+import me.helldiner.holdon.gui.IWindow;
+
+public class AppLoader {
+
+	public AppLoader(IWindow window) {
+		window.setScreen(new AppLoaderScreen());
+	}
+	
+	private class AppLoaderScreen extends JPanel {
+
+		private static final long serialVersionUID = 1L;
+		
+		@Override
+		public void paintComponent(Graphics g) {
+			
+		}
+	}
+	
+}

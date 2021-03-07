@@ -1,0 +1,25 @@
+package me.helldiner.holdon.hook;
+
+import me.helldiner.holdon.main.Main;
+
+public class Injector {
+	
+	private boolean success;
+	private static final String HOOK_DIR = Main.LIB_DIR+"hook/";
+	private int pid;
+	
+	public Injector(int pid) {
+		this.pid = pid;
+	}
+	
+	public boolean wasDllInjected() {
+		return this.success;
+	}
+	
+	public void inject(String dllName) {
+		this.inject(this.HOOK_DIR+dllName+".dll", this.pid);
+	}
+	
+	private native boolean inject(String dllPath, int pid);
+	
+}

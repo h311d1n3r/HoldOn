@@ -1,0 +1,9 @@
+package me.helldiner.holdon.hook;
+
+public class Injector {
+	
+	public Injector(String dllPath, int pid) {
+		
+	}
+	
+}
