@@ -1,0 +1,3 @@
+[submodule "LetsHook"]
+	path = LetsHook
+	url = https://github.com/HellDiner/LetsHook
