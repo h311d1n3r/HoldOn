@@ -1,0 +1,4 @@
+#define SYNC 1
+#define SHARED_FILES_DIR 2
+#define PACKET_INFO 3
+#define PACKET_CONTENT 4

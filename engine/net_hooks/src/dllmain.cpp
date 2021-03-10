@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "hook.h"
+#include "pipe_client.h"
+#include "pipe_constants.h"
 
 #include <iostream>
 
@@ -7,6 +9,7 @@ SIZE_T maxLen;
 LPWSABUF lpBuffers;
 DWORD dwBufferCount;
 LPDWORD lpNumberOfBytesRecvd;
+PipeClient *pipe = NULL;
 
 void hookWSARecvStart(SIZE_T* stack) {
     maxLen = 0;
@@ -41,7 +44,19 @@ void hookSend(SIZE_T* stack) {
 
 }
 
-void init() {
+void initPipe() {
+    bool pipeSuccess;
+    pipe = new PipeClient(pipeSuccess);
+    if (pipeSuccess) {
+        const char sync[] = { SYNC };
+        pipe->sendData((char*)sync, 1);
+    }
+    else {
+        /*DBG*/
+    }
+}
+
+void initHooks() {
     HMODULE module = GetModuleHandleA("WS2_32.dll");
     if (module) {
         SIZE_T wsarecvStartAddr = (SIZE_T)module + 0x10500;
@@ -54,12 +69,16 @@ void init() {
         injector = HookInjector(sendAddr, 15, &hookSend);
         injector.inject();
     }
+    else {
+        /*DBG*/
+    }
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
-        init();
+        initPipe();
+        initHooks();
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:
