@@ -10,6 +10,8 @@ public class Main {
 	public static final String APP_VERSION = "1.0";
 	public static final String AUTHOR_NAME = "HellDiner";
 	
+	public static final boolean DEBUG = true;
+	
 	public static final String LIB_DIR = "./lib/";
 	
 	public static void main(String[] args) {

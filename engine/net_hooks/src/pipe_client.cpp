@@ -47,12 +47,12 @@ bool PipeClient::sendData(char* buf, ULONG len) {
     return false;
 }
 
-int PipeClient::readData(char* buf, int bufSize) {
+int PipeClient::readData(char* buf) {
     ULONG readLen;
-    if (ReadFile(this->hPipe, buf, bufSize, &readLen, NULL)) {
+    if (ReadFile(this->hPipe, buf, BUFF_LEN, &readLen, NULL)) {
         return readLen;
     }
     /*DBG*/
-    //impl must check if ERROR_MORE_DATA
+    //impl must check for ERROR_MORE_DATA
     return -1;
 }

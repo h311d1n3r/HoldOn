@@ -1,11 +1,9 @@
 #pragma once
-#include <windows.h>
-#include "pipe_constants.h"
 
-class PipeClient {
+class PipeServer {
 public:
-	PipeClient(bool& success);
-	~PipeClient();
+	PipeServer(bool& success);
+	~PipeServer();
 	bool sendData(char* buf, ULONG len);
 	int readData(char* buf);
 private:

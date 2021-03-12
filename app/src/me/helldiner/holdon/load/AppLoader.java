@@ -6,13 +6,24 @@ import java.awt.Graphics;
 import javax.swing.JPanel;
 
 import me.helldiner.holdon.gui.IWindow;
+import me.helldiner.holdon.hook.Injector;
+import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.main.Main;
 
 public class AppLoader {
 	
 	public AppLoader(IWindow window) {
 		window.setScreen(new AppLoaderScreen());
+		/* TEMP */
 		this.loadLibrary("injector");
+		Injector injector = new Injector(11108);
+		injector.inject("LetsHook");
+		injector.inject("net_hooks");
+		this.loadLibrary("pipe_server");
+		if(new NetHooksHandler().connectPipe()) {
+			if(Main.DEBUG) System.out.println("Pipe synchronization : OK");
+		} else if(Main.DEBUG) System.out.println("Pipe synchronization : ERROR");
+		/********/
 	}
 	
 	private void loadLibrary(String name) {
