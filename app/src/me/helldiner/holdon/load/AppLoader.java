@@ -53,19 +53,7 @@ public class AppLoader {
 	
 	private void init() {
 		this.loadLibrary("injector");
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		this.loadLibrary("pipe_server");
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	private void loadLibrary(String name) {

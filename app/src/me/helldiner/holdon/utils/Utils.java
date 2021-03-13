@@ -10,7 +10,7 @@ public class Utils {
 	public static InputStream loadResource(String res) {
 		try {
 			if(Utils.isRunningFromJar()) {
-				return Utils.class.getResourceAsStream(res);
+				return Utils.class.getResourceAsStream(res.substring(1));
 			} else {
 				return new FileInputStream(new File(res));
 			}
