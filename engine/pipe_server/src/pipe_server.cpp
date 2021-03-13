@@ -3,20 +3,33 @@
 #include "pipe_constants.h"
 #include "pipe_handler.h"
 
+#ifdef DBG
 #include <iostream>
+#endif
 
 PipeServer::PipeServer(bool& success) {
 	success = this->initPipe();
+    if (success) {
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 10);
+        std::cout << "Pipe server initialized !" << std::endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
+    }
 }
 
 PipeServer::~PipeServer() {
-	//TODO : tell client to disconnect
-	if (this->hPipe) CloseHandle(hPipe);
+    if (this->hPipe) {
+        const char disconnect[] = { DISCONNECT };
+        this->sendData((char*)disconnect, 1);
+        CloseHandle(hPipe);
+    }
 }
 
 bool PipeServer::initPipe() {
     this->hPipe = CreateNamedPipe(
-        this->pipeName,
+        PIPE_NAME,
         PIPE_ACCESS_DUPLEX,
         PIPE_TYPE_MESSAGE |
         PIPE_READMODE_MESSAGE |
@@ -27,11 +40,22 @@ bool PipeServer::initPipe() {
         0,
         NULL);
     if (!(ConnectNamedPipe(this->hPipe, NULL) ? true : (GetLastError() == ERROR_PIPE_CONNECTED))) {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        std::cout << "Client pipe couldn't connect..." << std::endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
+        CloseHandle(hPipe);
         return false;
     }
     if (this->hPipe == NULL) {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        std::cout << "An error occured while trying to enable pipe : " << GetLastError() << std::endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
         return false;
     }
     return true;
@@ -43,7 +67,12 @@ bool PipeServer::sendData(char* buf, ULONG len) {
         if (writtenLen == len) return true;
         return false;
     }
-    /*DBG*/
+    #ifdef DBG
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 12);
+    std::cout << "An error occured while trying to write to pipe : " << GetLastError() << std::endl;
+    SetConsoleTextAttribute(hConsole, 8);
+    #endif
     return false;
 }
 
@@ -52,8 +81,12 @@ int PipeServer::readData(char* buf) {
     if (ReadFile(this->hPipe, buf, BUFF_LEN, &readLen, NULL)) {
         return readLen;
     }
-    /*DBG*/
-    //impl must check for ERROR_BROKEN_PIPE and ERROR_MORE_DATA
+    #ifdef DBG
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 12);
+    std::cout << "An error occured while trying to read from pipe : " << GetLastError() << std::endl;
+    SetConsoleTextAttribute(hConsole, 8);
+    #endif
     return -1;
 }
 
@@ -63,15 +96,30 @@ JNIEXPORT jboolean JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024Pi
     bool success;
     pipe = new PipeServer(success);
     if (!success) {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        std::cout << "An error occured while enabling the pipe server..." << std::endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
         return false;
     }
+    const char sync[] = { SYNC };
+    pipe->sendData((char*)sync, 1);
     char msg[BUFF_LEN];
     int timeout = 0;
     while (pipe->readData(msg) <= 0) {
         Sleep(100);
         timeout++;
-        if (timeout >= 20) return false; //2 seconds
+        if (timeout >= 20) { //2 seconds
+            #ifdef DBG
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 12);
+            std::cout << "Pipe synchronization failed due to timeout..." << std::endl;
+            SetConsoleTextAttribute(hConsole, 8);
+            #endif
+            return false;
+        }
     }
     if (msg) {
         if (msg[0] == SYNC) return true;

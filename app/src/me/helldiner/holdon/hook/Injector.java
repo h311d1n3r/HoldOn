@@ -21,4 +21,6 @@ public class Injector {
 	
 	private native boolean inject(String dllPath, int pid);
 	
+	public static native String[] listProcesses();
+	
 }

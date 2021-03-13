@@ -2,7 +2,9 @@
 #include "hook.h"
 #include "pipe_client.h"
 
+#ifdef DBG
 #include <iostream>
+#endif
 
 SIZE_T maxLen;
 LPWSABUF lpBuffers;
@@ -47,11 +49,35 @@ void initPipe() {
     bool pipeSuccess;
     pipe = new PipeClient(pipeSuccess);
     if (pipeSuccess) {
-        const char sync[] = { SYNC };
-        pipe->sendData((char*)sync, 1);
+        char msg[BUFF_LEN];
+        int timeout = 0;
+        while (pipe->readData(msg) <= 0) {
+            Sleep(100);
+            timeout++;
+            if (timeout >= 20) {
+                #ifdef DBG
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, 12);
+                cout << "Pipe synchronization failed due to timeout..." << endl;
+                SetConsoleTextAttribute(hConsole, 8);
+                #endif
+                return;
+            }
+        }
+        if (msg) {
+            if (msg[0] == SYNC) {
+                const char sync[] = { SYNC };
+                pipe->sendData((char*)sync, 1);
+            }
+        }
     }
     else {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "An error occured while enabling the pipe..." << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
     }
 }
 
@@ -69,7 +95,12 @@ void initHooks() {
         injector.inject();
     }
     else {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "Module WS2_32.dll couldn't be found in process..." << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
     }
 }
 

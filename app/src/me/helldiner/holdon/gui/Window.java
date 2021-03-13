@@ -5,16 +5,21 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import me.helldiner.holdon.main.Main;
+import me.helldiner.holdon.utils.Utils;
 
 public class Window extends JFrame implements IWindow, WindowListener {
 	
 	private static final long serialVersionUID = 1L;
+	private static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+	
 	private List<WindowStateListener> stateListeners = new ArrayList<WindowStateListener>();
 
 	public Window() {
@@ -22,11 +27,13 @@ public class Window extends JFrame implements IWindow, WindowListener {
 	}
 	
 	private void init() {
-		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setTitle(Main.APP_NAME+" v"+Main.APP_VERSION+" - "+Main.AUTHOR_NAME);
-		this.setSize((int)(screenSize.getWidth()/8D*7), (int)(screenSize.getHeight()/8D*7));
+		try {
+			this.setIconImage(ImageIO.read(Utils.loadResource("./res/img/logo.png")));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		this.setLocationRelativeTo(null);
 		this.addWindowListener(this);
 		this.setVisible(true);
 	}
@@ -39,6 +46,16 @@ public class Window extends JFrame implements IWindow, WindowListener {
 	@Override
 	public void setScreen(Container screen) {
 		this.setContentPane(screen);
+	}
+
+	@Override
+	public void setSize(float wFactor, float hFactor, boolean resizable) {
+		if(wFactor == 1 && hFactor == 1) this.setExtendedState(MAXIMIZED_BOTH);
+		else {
+			this.setSize((int)(SCREEN_SIZE.getWidth()*wFactor), (int)(SCREEN_SIZE.getHeight()*hFactor));
+			this.setLocationRelativeTo(null);
+		}
+		this.setResizable(resizable);
 	}
 	
 	@Override

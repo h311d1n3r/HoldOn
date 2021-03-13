@@ -5,3 +5,5 @@
 #define DISCONNECT 5
 
 #define BUFF_LEN 1024
+
+#define PIPE_NAME TEXT("\\\\.\\pipe\\holdon_pipe")

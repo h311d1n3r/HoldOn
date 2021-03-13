@@ -1,6 +1,10 @@
 #include <pch.h>
 #include <pipe_client.h>
 
+#ifdef DBG
+#include <iostream>
+#endif
+
 PipeClient::PipeClient(bool& success) {
     success = this->initPipe();
 }
@@ -12,7 +16,7 @@ PipeClient::~PipeClient() {
 bool PipeClient::initPipe() {
     while (true) {
         this->hPipe = CreateFile(
-            this->pipeName,
+            PIPE_NAME,
             GENERIC_READ | GENERIC_WRITE,
             0,
             NULL,
@@ -21,17 +25,32 @@ bool PipeClient::initPipe() {
             NULL);
         if (this->hPipe != INVALID_HANDLE_VALUE) break;
         if (GetLastError() != ERROR_PIPE_BUSY) {
-            /*DBG*/
+            #ifdef DBG
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 12);
+            std::cout << "An error occured while trying to open the pipe : " << GetLastError() << std::endl;
+            SetConsoleTextAttribute(hConsole, 8);
+            #endif
             return false;
         }
-        if (!WaitNamedPipe(this->pipeName, 20000)) {
-            /*DBG*/
+        if (!WaitNamedPipe(PIPE_NAME, 20000)) {
+            #ifdef DBG
+            HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            SetConsoleTextAttribute(hConsole, 12);
+            std::cout << "All pipe instances are busy, new attempt in 20 seconds..." << std::endl;
+            SetConsoleTextAttribute(hConsole, 8);
+            #endif
             return false;
         }
     }
     DWORD dwMode = PIPE_READMODE_MESSAGE;
     if (!SetNamedPipeHandleState(this->hPipe, &dwMode, NULL, NULL)) {
-        /*DBG*/
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        std::cout << "SetNamedPipeHandleState failed due to error : " << GetLastError() << std::endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
         return false;
     }
     return true;
@@ -43,7 +62,12 @@ bool PipeClient::sendData(char* buf, ULONG len) {
         if(writtenLen == len) return true;
         return false;
     }
-    /*DBG*/
+    #ifdef DBG
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 12);
+    std::cout << "Couldn't write to pipe due to error : " << GetLastError() << std::endl;
+    SetConsoleTextAttribute(hConsole, 8);
+    #endif
     return false;
 }
 
@@ -52,7 +76,11 @@ int PipeClient::readData(char* buf) {
     if (ReadFile(this->hPipe, buf, BUFF_LEN, &readLen, NULL)) {
         return readLen;
     }
-    /*DBG*/
-    //impl must check for ERROR_MORE_DATA
+    #ifdef DBG
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 12);
+    std::cout << "Couldn't read from pipe due to error : " << GetLastError() << std::endl;
+    SetConsoleTextAttribute(hConsole, 8);
+    #endif
     return -1;
 }

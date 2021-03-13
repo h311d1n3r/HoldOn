@@ -10,6 +10,5 @@ public:
 	int readData(char* buf);
 private:
 	HANDLE hPipe = NULL;
-	LPCTSTR pipeName = TEXT("\\\\.\\pipe\\holdon_pipe");
 	bool initPipe();
 };

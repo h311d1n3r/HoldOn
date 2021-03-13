@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT jboolean JNICALL Java_me_helldiner_holdon_hook_Injector_inject
   (JNIEnv *, jobject, jstring, jint);
 
+/*
+ * Class:     me_helldiner_holdon_hook_Injector
+ * Method:    listProcesses
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_me_helldiner_holdon_hook_Injector_listProcesses
+(JNIEnv*, jclass);
+
 #ifdef __cplusplus
 }
 #endif
