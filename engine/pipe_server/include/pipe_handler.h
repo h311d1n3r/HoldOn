@@ -7,29 +7,29 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/*
- * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
- * Method:    connect
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_connect
-  (JNIEnv *, jobject);
+	/*
+	 * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
+	 * Method:    connect
+	 * Signature: ()Z
+	 */
+	JNIEXPORT jboolean JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_connect
+	(JNIEnv*, jobject);
 
-/*
- * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
- * Method:    sendSharedDir
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_sendSharedDir
-  (JNIEnv *, jobject, jstring);
+	/*
+	 * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
+	 * Method:    tick
+	 * Signature: (Lme/helldiner/holdon/hook/NetHooksHandler;)V
+	 */
+	JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_tick
+	(JNIEnv*, jobject, jobject);
 
-/*
- * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
- * Method:    sendPacketBytes
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_sendPacketBytes
-  (JNIEnv *, jobject, jint);
+	/*
+	 * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
+	 * Method:    sendPacketBytes
+	 * Signature: (I)V
+	 */
+	JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_sendPacketBytes
+	(JNIEnv*, jobject, jint);
 
 #ifdef __cplusplus
 }

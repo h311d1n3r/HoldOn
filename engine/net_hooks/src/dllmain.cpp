@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hook.h"
 #include "pipe_client.h"
+#include "ws2tcpip.h"
 
 #ifdef DBG
 #include <iostream>
@@ -14,13 +15,36 @@ PipeClient *pipe = NULL;
 
 void hookWSARecvStart(SIZE_T* stack) {
     maxLen = 0;
-    lpBuffers = (LPWSABUF) stack[1];
-    dwBufferCount = stack[2];
-    for (int i(0); i < dwBufferCount; i++) {
-        WSABUF wsaBuf = lpBuffers[i];
-        maxLen += wsaBuf.len;
+    SOCKET s = stack[0];
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    int nameLen = sizeof(addr);
+    if (!getsockname(s, (struct sockaddr*) &addr, &nameLen)) {
+        char ip[16];
+        inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
+        unsigned int port = ntohs(addr.sin_port);
+        lpBuffers = (LPWSABUF)stack[1];
+        dwBufferCount = stack[2];
+        for (int i(0); i < dwBufferCount; i++) {
+            WSABUF wsaBuf = lpBuffers[i];
+            maxLen += wsaBuf.len;
+        }
+        lpNumberOfBytesRecvd = (LPDWORD)stack[3];
+        const char packet_info[] = { PACKET_INFO };
+        char* portArr = reinterpret_cast<char*>(&port);
+        pipe->sendData((char*)packet_info, 1);
+        pipe->sendData(ip, 16);
+        pipe->sendData(portArr, sizeof(unsigned int));
     }
-    lpNumberOfBytesRecvd = (LPDWORD) stack[3];
+    else {
+        lpNumberOfBytesRecvd = NULL;
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "Couldn't resolve socket address, error : " << GetLastError() << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
+    }
 }
 
 void hookWSARecvEnd() {
@@ -34,7 +58,7 @@ void hookWSARecvEnd() {
                 for (int i2(0); i2 < wsaBuf.len && totalLen < len; i2++) {
                     char c = wsaBuf.buf[i2];
                     totalLen++;
-                    printf("%x", c);
+                    //printf("%x", c);
                 }
             }
         }
@@ -45,7 +69,7 @@ void hookSend(SIZE_T* stack) {
 
 }
 
-void initPipe() {
+bool initPipe() {
     bool pipeSuccess;
     pipe = new PipeClient(pipeSuccess);
     if (pipeSuccess) {
@@ -61,13 +85,14 @@ void initPipe() {
                 cout << "Pipe synchronization failed due to timeout..." << endl;
                 SetConsoleTextAttribute(hConsole, 8);
                 #endif
-                return;
+                return false;
             }
         }
         if (msg) {
             if (msg[0] == SYNC) {
                 const char sync[] = { SYNC };
                 pipe->sendData((char*)sync, 1);
+                return true;
             }
         }
     }
@@ -79,6 +104,7 @@ void initPipe() {
         SetConsoleTextAttribute(hConsole, 8);
         #endif
     }
+    return false;
 }
 
 void initHooks() {
@@ -107,8 +133,7 @@ void initHooks() {
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
-        initPipe();
-        initHooks();
+        if(initPipe()) initHooks();
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:

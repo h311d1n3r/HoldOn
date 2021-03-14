@@ -6,8 +6,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Image;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -40,7 +38,7 @@ public class PacketConsole extends JPanel implements ScreenListener {
 				public void run() {
 					int i = 0;
 					while(i < 256) {
-						addPacket("192.168.12."+i, i);
+						addPacket("192.168.12."+i, i, true);
 						i++;
 						try {
 							Thread.sleep(50);
@@ -52,7 +50,7 @@ public class PacketConsole extends JPanel implements ScreenListener {
 			}.start();
 	}
 	
-	public void addPacket(String ip, int id) {
+	public void addPacket(String ip, int id, boolean received) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -61,7 +59,6 @@ public class PacketConsole extends JPanel implements ScreenListener {
 				container.setBackground(null);
 				container.setLayout(new BorderLayout());
 				container.setBounds(0,count*30,packetsLoggerContainer.getWidth(), 30);
-				container.addMouseListener(packetClickListener);
 				JLabel ipLabel = new JLabel(ip);
 				ipLabel.setForeground(Color.WHITE);
 				ipLabel.setSize(container.getWidth()/2, getHeight());
@@ -69,7 +66,7 @@ public class PacketConsole extends JPanel implements ScreenListener {
 				ipLabel.setBorder(new EmptyBorder(5,10,2,0));
 				container.add(ipLabel,BorderLayout.WEST);
 				JLabel idLabel = new JLabel(""+id);
-				idLabel.setForeground(Color.RED);
+				idLabel.setForeground(received?Color.RED:Color.GREEN);
 				idLabel.setSize(container.getWidth()/2, getHeight());
 				idLabel.setBorder(new EmptyBorder(5,0,2,10));
 				idLabel.setFont(new Font("Arial", Font.BOLD, 20));
@@ -84,35 +81,6 @@ public class PacketConsole extends JPanel implements ScreenListener {
 			}
 		});
 	}
-	
-	private final MouseListener packetClickListener = new MouseListener() {
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			
-		}
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			Object component = e.getSource();
-			if(component instanceof JPanel) {
-				JPanel container = (JPanel) component;
-				container.setBackground(new Color(100,115,130));
-				container.repaint();
-			}
-		}
-		@Override
-		public void mouseExited(MouseEvent e) {
-			Object component = e.getSource();
-			if(component instanceof JPanel) {
-				JPanel container = (JPanel) component;
-				container.setBackground(null);
-				container.repaint();
-			}
-		}
-		@Override
-		public void mousePressed(MouseEvent e) {}
-		@Override
-		public void mouseReleased(MouseEvent e) {}
-	};
 	
 	private void initActionBar() {
 		JPanel bar = new JPanel();
