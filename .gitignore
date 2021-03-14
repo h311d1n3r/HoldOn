@@ -9,3 +9,4 @@ x64/
 *.vcxproj.user
 /app/.classpath
 /app/.project
+*.log
