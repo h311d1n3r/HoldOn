@@ -32,25 +32,9 @@ public class PacketConsole extends JPanel implements ScreenListener {
 		this.setBackground(new Color(30,35,40));
 		this.initActionBar();
 		this.initPacketLogger();
-		//temp
-			new Thread() {
-				@Override
-				public void run() {
-					int i = 0;
-					while(i < 256) {
-						addPacket("192.168.12."+i, i, true);
-						i++;
-						try {
-							Thread.sleep(50);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}.start();
 	}
 	
-	public void addPacket(String ip, int id, boolean received) {
+	public void addPacket(String ip, boolean received) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -65,7 +49,7 @@ public class PacketConsole extends JPanel implements ScreenListener {
 				ipLabel.setFont(new Font("Arial", Font.BOLD, 20));
 				ipLabel.setBorder(new EmptyBorder(5,10,2,0));
 				container.add(ipLabel,BorderLayout.WEST);
-				JLabel idLabel = new JLabel(""+id);
+				JLabel idLabel = new JLabel(""+(received?"RECEIVED":"SENT"));
 				idLabel.setForeground(received?Color.RED:Color.GREEN);
 				idLabel.setSize(container.getWidth()/2, getHeight());
 				idLabel.setBorder(new EmptyBorder(5,0,2,10));

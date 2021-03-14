@@ -19,7 +19,7 @@ void hookWSARecvStart(SIZE_T* stack) {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     int nameLen = sizeof(addr);
-    if (!getsockname(s, (struct sockaddr*) &addr, &nameLen)) {
+    if (!getpeername(s, (struct sockaddr*) &addr, &nameLen)) {
         char ip[16];
         inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
         unsigned int port = ntohs(addr.sin_port);
@@ -32,7 +32,9 @@ void hookWSARecvStart(SIZE_T* stack) {
         lpNumberOfBytesRecvd = (LPDWORD)stack[3];
         const char packet_info[] = { PACKET_INFO };
         char* portArr = reinterpret_cast<char*>(&port);
+        const char received[] = { true };
         pipe->sendData((char*)packet_info, 1);
+        pipe->sendData((char*)received, sizeof(bool));
         pipe->sendData(ip, 16);
         pipe->sendData(portArr, sizeof(unsigned int));
     }
@@ -66,7 +68,22 @@ void hookWSARecvEnd() {
 }
 
 void hookSend(SIZE_T* stack) {
-
+    SOCKET s = stack[0];
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    int nameLen = sizeof(addr);
+    if (!getpeername(s, (struct sockaddr*)&addr, &nameLen)) {
+        char ip[16];
+        inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
+        unsigned int port = ntohs(addr.sin_port);
+        const char packet_info[] = { PACKET_INFO };
+        char* portArr = reinterpret_cast<char*>(&port);
+        const char received[] = { false };
+        pipe->sendData((char*)packet_info, 1);
+        pipe->sendData((char*)received, sizeof(bool));
+        pipe->sendData(ip, 16);
+        pipe->sendData(portArr, sizeof(unsigned int));
+    }
 }
 
 bool initPipe() {

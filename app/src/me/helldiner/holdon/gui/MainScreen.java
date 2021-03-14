@@ -24,12 +24,14 @@ import javax.swing.border.EmptyBorder;
 import me.helldiner.holdon.gui.component.CenteredJMenu;
 import me.helldiner.holdon.gui.component.PacketConsole;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
+import me.helldiner.holdon.hook.NetHooksListener;
 
-public class MainScreen extends JPanel implements ComponentListener {
+public class MainScreen extends JPanel implements ComponentListener, NetHooksListener {
 
 	private static final long serialVersionUID = 1L;
 	
 	private List<ScreenListener> screenListeners = new ArrayList<ScreenListener>();
+	private PacketConsole packetConsole;
 
 	public MainScreen(IWindow window) {
 		window.setSize(1f, 1f, true);
@@ -87,7 +89,7 @@ public class MainScreen extends JPanel implements ComponentListener {
 				String menuItemName = menuItem.getName();
 				switch(menuItemName) {
 					case "File|Attach process...":
-						new ProcessPickerWindow();
+						new ProcessPickerWindow(MainScreen.this);
 					break;
 					default:
 				}
@@ -96,11 +98,16 @@ public class MainScreen extends JPanel implements ComponentListener {
 	};
 	
 	private void initPacketConsole() {
-		PacketConsole console = new PacketConsole(this);
-		this.screenListeners.add(console);
-		console.setLocation(10, 40);
-		console.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		this.add(console);
+		this.packetConsole = new PacketConsole(this);
+		this.screenListeners.add(this.packetConsole);
+		this.packetConsole.setLocation(10, 40);
+		this.packetConsole.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		this.add(this.packetConsole);
+	}
+	
+	@Override
+	public void onPacketInfoReceived(String ip, int port, boolean received) {
+		this.packetConsole.addPacket(ip+":"+port, received);
 	}
 	
 	@Override

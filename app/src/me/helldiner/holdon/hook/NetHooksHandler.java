@@ -3,8 +3,10 @@ package me.helldiner.holdon.hook;
 public class NetHooksHandler extends Thread {
 	
 	private PipeHandler pipe;
+	private NetHooksListener listener;
 	
-	public NetHooksHandler() {
+	public NetHooksHandler(NetHooksListener listener) {
+		this.listener = listener;
 		this.pipe = new PipeHandler();
 	}
 	
@@ -16,11 +18,11 @@ public class NetHooksHandler extends Thread {
 		return false;
 	}
 	
-	public void receivePacketInfo(int id, String ip, int port) {
-		System.out.println(id+" "+ip+" "+port);
+	public void receivePacketInfo(String ip, int port, boolean received) {
+		this.listener.onPacketInfoReceived(ip, port, received);
 	}
 	
-	public void receivePacketBytes(int id, char[] bytes) {
+	public void receivePacketBytes(char[] bytes) {
 		
 	}
 	
@@ -35,7 +37,7 @@ public class NetHooksHandler extends Thread {
 		
 		public native boolean connect();
 		public native void tick(NetHooksHandler callbackHandler);
-		public native void sendPacketBytes(int id);
+		public native void sendPacketBytes(char[] bytes);
 		
 	}
 	

@@ -133,14 +133,18 @@ JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHa
         jclass net_hooks_handler_class = env->GetObjectClass(callbackHandler);
         switch (msg[0]) {
         case PACKET_INFO:
-            char ip[16];
-            if (pipe->readData(msg) == 16) {
-                memcpy(ip, msg, 16);
-                if (pipe->readData(msg) == sizeof(unsigned int)) {
-                    unsigned int port = 0;
-                    memcpy(&port, msg, sizeof(unsigned int));
-                    jmethodID receive_packet_info = env->GetMethodID(net_hooks_handler_class, "receivePacketInfo", "(ILjava/lang/String;I)V");
-                    env->CallVoidMethod(callbackHandler, receive_packet_info, 15, env->NewStringUTF(ip), port);
+            if (pipe->readData(msg) == sizeof(bool)) {
+                bool received = false;
+                memcpy(&received, msg, sizeof(bool));
+                if (pipe->readData(msg) == 16) {
+                    char ip[16];
+                    memcpy(ip, msg, 16);
+                    if (pipe->readData(msg) == sizeof(unsigned int)) {
+                        unsigned int port = 0;
+                        memcpy(&port, msg, sizeof(unsigned int));
+                        jmethodID receive_packet_info = env->GetMethodID(net_hooks_handler_class, "receivePacketInfo", "(Ljava/lang/String;IZ)V");
+                        env->CallVoidMethod(callbackHandler, receive_packet_info, env->NewStringUTF(ip), port, received);
+                    }
                 }
             }
             break;

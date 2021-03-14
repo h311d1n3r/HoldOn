@@ -30,6 +30,7 @@ import javax.swing.JScrollPane;
 
 import me.helldiner.holdon.hook.Injector;
 import me.helldiner.holdon.hook.NetHooksHandler;
+import me.helldiner.holdon.hook.NetHooksListener;
 import me.helldiner.holdon.main.Main;
 import me.helldiner.holdon.utils.Utils;
 import sun.awt.shell.ShellFolder;
@@ -40,9 +41,11 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 	
 	private static boolean Open = false;
 	private JLabel clicked = null;
+	private NetHooksListener hooksListener;
 
-	public ProcessPickerWindow() {
+	public ProcessPickerWindow(NetHooksListener hooksListener) {
 		if(!Open) {
+			this.hooksListener = hooksListener;
 			this.init();
 			Open = true;
 		}
@@ -96,7 +99,7 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 					Injector injector = new Injector(pid);
 					injector.inject("LetsHook");
 					injector.inject("net_hooks");
-					if(new NetHooksHandler().connectPipe()) {
+					if(new NetHooksHandler(hooksListener).connectPipe()) {
 						if(Main.DEBUG) System.out.println("Pipe synchronization : OK");
 					} else if(Main.DEBUG) System.out.println("Pipe synchronization : ERROR");
 				}
