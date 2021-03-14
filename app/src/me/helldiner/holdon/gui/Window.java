@@ -1,5 +1,6 @@
 package me.helldiner.holdon.gui;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -11,6 +12,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 
 import me.helldiner.holdon.main.Main;
 import me.helldiner.holdon.utils.Utils;
@@ -27,6 +30,10 @@ public class Window extends JFrame implements IWindow, WindowListener {
 	}
 	
 	private void init() {
+		UIManager.put("PopupMenu.border", new EmptyBorder(0,0,0,0));
+		UIManager.put("MenuItem.selectionBackground", new Color(5,100,200));
+		UIManager.put("MenuItem.selectionForeground", Color.WHITE);
+		UIManager.put("Button.select", new Color(55,60,65));
 		this.setTitle(Main.APP_NAME+" v"+Main.APP_VERSION+" - "+Main.AUTHOR_NAME);
 		try {
 			this.setIconImage(ImageIO.read(Utils.loadResource("./res/img/logo.png")));

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -26,7 +27,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.UIManager;
 
 import me.helldiner.holdon.hook.Injector;
 import me.helldiner.holdon.hook.NetHooksHandler;
@@ -49,7 +49,6 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 	}
 	
 	private void init() {
-		UIManager.put("Button.select", new Color(55,60,65));
 		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setTitle("Attach process...");
 		try {
@@ -123,6 +122,24 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 	private void initProcessList(JPanel panel) {
 		JPanel scrollContainer = new JPanel();
 		scrollContainer.setLayout(new BoxLayout(scrollContainer,BoxLayout.Y_AXIS));
+		this.displayProcesses(scrollContainer);
+		JScrollPane scrollPane = new JScrollPane(scrollContainer);
+		JScrollBar vertical = scrollPane.getVerticalScrollBar();
+		vertical.addAdjustmentListener(new AdjustmentListener() {
+			@Override
+		    public void adjustmentValueChanged(AdjustmentEvent e) {  
+		        e.getAdjustable().setValue(e.getAdjustable().getMaximum());
+		        vertical.removeAdjustmentListener(this);
+		    }
+		});
+		vertical.setUnitIncrement(20);
+		scrollPane.setBounds(getWidth()/8, getHeight()/8, getWidth()-getWidth()/4, (int)(getHeight()-getHeight()/2.5));
+		scrollContainer.setBackground(new Color(35,40,45));
+		scrollPane.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+		panel.add(scrollPane);
+	}
+	
+	private void displayProcesses(JPanel scrollContainer) {
 		final MouseListener labelListener = new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -141,21 +158,15 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 					}
 				}
 			}
-
 			@Override
 			public void mouseEntered(MouseEvent e) {}
-
 			@Override
 			public void mouseExited(MouseEvent e) {}
-
 			@Override
 			public void mousePressed(MouseEvent e) {}
-
 			@Override
 			public void mouseReleased(MouseEvent e) {}
-			
 		};
-		
 		for(String processStr : Injector.listProcesses()) {
 			if(processStr.length() != 0) {
 				if(processStr.contains("|")) {
@@ -163,7 +174,7 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 						String processPath = processStr.substring(0,processStr.indexOf("|"));
 						File file = new File(processPath);
 						ShellFolder sf = ShellFolder.getShellFolder(file);
-						Icon icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH));
+						Icon icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, Image.SCALE_SMOOTH));
 						if(processPath.contains("\\")) {
 							String processName = processPath.substring(processPath.lastIndexOf("\\")+1);
 							int pid = Integer.parseInt(processStr.substring(processStr.lastIndexOf("|")+1));
@@ -182,20 +193,6 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 				}
 			}
 		}
-		JScrollPane scrollPane = new JScrollPane(scrollContainer);
-		JScrollBar vertical = scrollPane.getVerticalScrollBar();
-		vertical.addAdjustmentListener(new AdjustmentListener() {
-			@Override
-		    public void adjustmentValueChanged(AdjustmentEvent e) {  
-		        e.getAdjustable().setValue(e.getAdjustable().getMaximum());
-		        vertical.removeAdjustmentListener(this);
-		    }
-		});
-		vertical.setUnitIncrement(20);
-		scrollPane.setBounds(getWidth()/8, getHeight()/8, getWidth()-getWidth()/4, (int)(getHeight()-getHeight()/2.5));
-		scrollContainer.setBackground(new Color(35,40,45));
-		scrollPane.setBorder(BorderFactory.createLineBorder(Color.WHITE));
-		panel.add(scrollPane);
 	}
 
 	@Override

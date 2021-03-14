@@ -8,6 +8,10 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JMenu;
@@ -15,29 +19,30 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import me.helldiner.holdon.gui.component.CenteredJMenu;
+import me.helldiner.holdon.gui.component.PacketConsole;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
 
-public class MainScreen extends JPanel {
+public class MainScreen extends JPanel implements ComponentListener {
 
 	private static final long serialVersionUID = 1L;
+	
+	private List<ScreenListener> screenListeners = new ArrayList<ScreenListener>();
 
 	public MainScreen(IWindow window) {
 		window.setSize(1f, 1f, true);
 		window.setScreen(this);
-		UIManager.put("PopupMenu.border", new EmptyBorder(0,0,0,0));
-		UIManager.put("MenuItem.selectionBackground", new Color(5,100,200));
-		UIManager.put("MenuItem.selectionForeground", Color.WHITE);
-		this.setLayout(null);
-		this.setBackground(new Color(35,40,45));
 		this.init();
 	}
 	
 	private void init() {
+		this.addComponentListener(this);
+		this.setLayout(null);
+		this.setBackground(new Color(35,40,45));
 		this.initMenuBar();
+		this.initPacketConsole();
 	}
 	
 	private void initMenuBar() {
@@ -90,6 +95,14 @@ public class MainScreen extends JPanel {
 		}
 	};
 	
+	private void initPacketConsole() {
+		PacketConsole console = new PacketConsole(this);
+		this.screenListeners.add(console);
+		console.setLocation(10, 40);
+		console.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		this.add(console);
+	}
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -104,5 +117,19 @@ public class MainScreen extends JPanel {
 			}
 		}
 	}
+
+	@Override
+	public void componentHidden(ComponentEvent e) {}
+
+	@Override
+	public void componentMoved(ComponentEvent e) {}
+
+	@Override
+	public void componentResized(ComponentEvent e) {
+		for(ScreenListener listener : this.screenListeners) listener.onScreenResized();
+	}
+
+	@Override
+	public void componentShown(ComponentEvent e) {}
 	
 }

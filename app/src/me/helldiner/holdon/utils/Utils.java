@@ -20,7 +20,7 @@ public class Utils {
 		return null;
 	}
 	
-	private static final boolean isRunningFromJar() {
+	public static final boolean isRunningFromJar() {
 		return Utils.class.getResource("Utils.class").toString().startsWith("jar:");
 	}
 	
