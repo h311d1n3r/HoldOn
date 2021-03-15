@@ -11,6 +11,8 @@ SIZE_T maxLen;
 LPWSABUF lpBuffers;
 DWORD dwBufferCount;
 LPDWORD lpNumberOfBytesRecvd;
+char* buf;
+int len;
 PipeClient *pipe = NULL;
 
 void hookWSARecvStart(SIZE_T* stack) {
@@ -43,7 +45,7 @@ void hookWSARecvStart(SIZE_T* stack) {
         #ifdef DBG
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 12);
-        cout << "Couldn't resolve socket address, error : " << GetLastError() << endl;
+        cout << "Couldn't resolve socket address, error : " << WSAGetLastError() << endl;
         SetConsoleTextAttribute(hConsole, 8);
         #endif
     }
@@ -67,6 +69,70 @@ void hookWSARecvEnd() {
     }
 }
 
+void hookRecvStart(SIZE_T* stack) {
+    SOCKET s = stack[0];
+    buf = (char*) stack[1];
+    len = stack[2];
+    struct sockaddr_in6 addr;
+    memset(&addr, 0, sizeof(addr));
+    int nameLen = sizeof(addr);
+    if (!getpeername(s, (struct sockaddr*)&addr, &nameLen)) {
+        char ip[16];
+        inet_ntop(AF_INET, &addr.sin6_addr, ip, sizeof(ip));
+        unsigned int port = ntohs(addr.sin6_port);
+        const char packet_info[] = { PACKET_INFO };
+        char* portArr = reinterpret_cast<char*>(&port);
+        const char received[] = { true };
+        pipe->sendData((char*)packet_info, 1);
+        pipe->sendData((char*)received, sizeof(bool));
+        pipe->sendData(ip, 16);
+        pipe->sendData(portArr, sizeof(unsigned int));
+    }
+    else {
+        lpNumberOfBytesRecvd = NULL;
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "Couldn't resolve socket address, error : " << WSAGetLastError() << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
+    }
+}
+
+void hookRecvEnd() {
+    if (buf) {
+        
+    }
+}
+
+void hookWSASend(SIZE_T* stack) {
+    SOCKET s = stack[0];
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    int nameLen = sizeof(addr);
+    if (!getpeername(s, (struct sockaddr*)&addr, &nameLen)) {
+        char ip[16];
+        inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
+        unsigned int port = ntohs(addr.sin_port);
+        const char packet_info[] = { PACKET_INFO };
+        char* portArr = reinterpret_cast<char*>(&port);
+        const char received[] = { false };
+        pipe->sendData((char*)packet_info, 1);
+        pipe->sendData((char*)received, sizeof(bool));
+        pipe->sendData(ip, 16);
+        pipe->sendData(portArr, sizeof(unsigned int));
+    }
+    else {
+        lpNumberOfBytesRecvd = NULL;
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "Couldn't resolve socket address, error : " << WSAGetLastError() << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
+    }
+}
+
 void hookSend(SIZE_T* stack) {
     SOCKET s = stack[0];
     struct sockaddr_in addr;
@@ -83,6 +149,15 @@ void hookSend(SIZE_T* stack) {
         pipe->sendData((char*)received, sizeof(bool));
         pipe->sendData(ip, 16);
         pipe->sendData(portArr, sizeof(unsigned int));
+    }
+    else {
+        lpNumberOfBytesRecvd = NULL;
+        #ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "Couldn't resolve socket address, error : " << WSAGetLastError() << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+        #endif
     }
 }
 
@@ -132,6 +207,15 @@ void initHooks() {
         injector.inject();
         SIZE_T wsarecvEndAddr = (SIZE_T)module + 0x10679;
         injector = HookInjector(wsarecvEndAddr, 16, &hookWSARecvEnd);
+        injector.inject();
+        SIZE_T recvStartAddr = (SIZE_T)module + 0x11D90;
+        injector = HookInjector(recvStartAddr, 15, &hookRecvStart);
+        injector.inject();
+        SIZE_T recvEndAddr = (SIZE_T)module + 0x11E7F;
+        injector = HookInjector(recvEndAddr, 14, &hookRecvEnd);
+        injector.inject();
+        SIZE_T wsasendAddr = (SIZE_T)module + 0x1F60;
+        injector = HookInjector(wsasendAddr, 15, &hookWSASend);
         injector.inject();
         SIZE_T sendAddr = (SIZE_T)module + 0x2320;
         injector = HookInjector(sendAddr, 15, &hookSend);
