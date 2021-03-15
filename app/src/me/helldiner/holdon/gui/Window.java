@@ -52,7 +52,10 @@ public class Window extends JFrame implements IWindow, WindowListener {
 	
 	@Override
 	public void setScreen(Container screen) {
+		this.getContentPane().removeAll();
 		this.setContentPane(screen);
+		this.revalidate();
+		this.repaint();
 	}
 
 	@Override
