@@ -2,10 +2,7 @@
 #include "pipe_server.h"
 #include "pipe_constants.h"
 #include "pipe_handler.h"
-
-#ifdef DBG
 #include <iostream>
-#endif
 
 PipeServer::PipeServer(bool& success) {
 	success = this->initPipe();
