@@ -1,8 +1,6 @@
 package me.helldiner.holdon.gui;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -18,11 +16,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import me.helldiner.holdon.gui.component.CenteredJMenu;
+import me.helldiner.holdon.gui.component.PacketAsciiEditor;
 import me.helldiner.holdon.gui.component.PacketConsole;
+import me.helldiner.holdon.gui.component.PacketHexEditor;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
 import me.helldiner.holdon.hook.NetHooksListener;
 
@@ -32,6 +31,8 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 	
 	private List<ScreenListener> screenListeners = new ArrayList<ScreenListener>();
 	private PacketConsole packetConsole;
+	private PacketHexEditor packetHexEditor;
+	private PacketAsciiEditor packetAsciiEditor;
 
 	public MainScreen(IWindow window) {
 		window.setSize(1f, 1f, true);
@@ -45,6 +46,10 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		this.setBackground(new Color(35,40,45));
 		this.initMenuBar();
 		this.initPacketConsole();
+		this.initPacketHexEditor();
+		this.initPacketAsciiEditor();
+		this.packetHexEditor.setTextAreaListener(this.packetAsciiEditor);
+		this.packetAsciiEditor.setTextAreaListener(this.packetHexEditor);
 	}
 	
 	private void initMenuBar() {
@@ -105,6 +110,22 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		this.add(this.packetConsole);
 	}
 	
+	private void initPacketHexEditor() {
+		this.packetHexEditor = new PacketHexEditor(this);
+		this.screenListeners.add(this.packetHexEditor);
+		this.packetHexEditor.setLocation(getWidth()/2-getWidth()/15*4-30, 40);
+		this.packetHexEditor.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		this.add(this.packetHexEditor);
+	}
+	
+	private void initPacketAsciiEditor() {
+		this.packetAsciiEditor = new PacketAsciiEditor(this);
+		this.screenListeners.add(this.packetAsciiEditor);
+		this.packetAsciiEditor.setLocation(getWidth()/2+30, 40);
+		this.packetAsciiEditor.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		this.add(this.packetAsciiEditor);
+	}
+	
 	@Override
 	public void onPacketInfoReceived(String ip, int port, boolean received) {
 		this.packetConsole.addPacket(ip+":"+port, received);
@@ -113,16 +134,6 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		this.repaintAll(this);
-	}
-	
-	private void repaintAll(Component comp) {
-		SwingUtilities.updateComponentTreeUI(this);
-		if(comp instanceof Container) {
-			for(Component component : ((Container)comp).getComponents()) {
-				this.repaintAll(component);
-			}
-		}
 	}
 
 	@Override
