@@ -176,15 +176,18 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 					try {
 						String processPath = processStr.substring(0,processStr.indexOf("|"));
 						File file = new File(processPath);
-						ShellFolder sf = ShellFolder.getShellFolder(file);
-						Icon icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, Image.SCALE_SMOOTH));
+						Icon icon = null;
+						if(file.exists()) {
+							ShellFolder sf = ShellFolder.getShellFolder(file);
+							icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, Image.SCALE_SMOOTH));
+						}
 						if(processPath.contains("\\")) {
 							String processName = processPath.substring(processPath.lastIndexOf("\\")+1);
 							int pid = Integer.parseInt(processStr.substring(processStr.lastIndexOf("|")+1));
 							JLabel label = new JLabel(processName+" - "+pid);
 							label.setName(""+pid);
 							label.setPreferredSize(new Dimension(scrollContainer.getWidth(),20));
-							label.setIcon(icon);
+							if(icon != null) label.setIcon(icon);
 							label.setForeground(Color.WHITE);
 							label.setFont(new Font("Calibri",Font.PLAIN,16));
 							label.addMouseListener(labelListener);
