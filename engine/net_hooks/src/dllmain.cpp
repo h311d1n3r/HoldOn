@@ -14,6 +14,48 @@ LPDWORD lpNumberOfBytesRecvd;
 char* buf;
 int len;
 PipeClient *pipe = NULL;
+bool pauseThread = false;
+HANDLE pausedThread;
+bool singleStep = false;
+
+void receiverThread() {
+    while (true) {
+        char msg[BUFF_LEN];
+        int len;
+        if (pipe->waitingData()) {
+            while ((len = pipe->readData(msg)) <= 0);
+            if (len == 1) {
+                switch (msg[0]) {
+                case PACKET_CONTENT:
+                    if (pipe->readData(msg) == sizeof(int)) {
+                        int packetLen = 0;
+                        memcpy(&packetLen, msg, sizeof(int));
+                        char* packet = (char*)malloc(packetLen);
+                        if (packet) {
+                            int i(0);
+                            while (i < packetLen) {
+                                int bufferLen = pipe->readData(msg);
+                                memcpy(&packet[i], msg, bufferLen);
+                                i += bufferLen;
+                            }
+                            memcpy(buf,packet,packetLen);
+                        }
+                    }
+                    break;
+                case PAUSE_THREAD:
+                    pauseThread = true;
+                    break;
+                case CONTINUE_THREAD:
+                    if (pausedThread && pauseThread) ResumeThread(pausedThread);
+                    break;
+                case SINGLE_STEP:
+                    singleStep = true;
+                    if (pausedThread && pauseThread) ResumeThread(pausedThread);
+                }
+            }
+        }
+    }
+}
 
 void hookWSARecvStart(SIZE_T* stack) {
     maxLen = 0;
@@ -54,17 +96,35 @@ void hookWSARecvStart(SIZE_T* stack) {
 void hookWSARecvEnd() {
     if (lpNumberOfBytesRecvd) {
         DWORD len = *lpNumberOfBytesRecvd;
-        if (len <= maxLen) {
-            //printf("%x ", len);
+        if (len <= maxLen && pauseThread) {
+            const char packetContentCode[] = { PACKET_CONTENT };
+            pipe->sendData((char*) packetContentCode, 1);
+            char* lenArr = reinterpret_cast<char*>(&len);
+            pipe->sendData(lenArr, sizeof(int));
             int totalLen = 0;
             for (int i(0); i < dwBufferCount && totalLen < len; i++) {
                 WSABUF wsaBuf = lpBuffers[i];
-                for (int i2(0); i2 < wsaBuf.len && totalLen < len; i2++) {
-                    char c = wsaBuf.buf[i2];
-                    totalLen++;
-                    //printf("%x", c);
+                int i2(0);
+                while (i2 < wsaBuf.len && totalLen < len) {
+                    int sendLen = BUFF_LEN;
+                    if (wsaBuf.len - i2 < sendLen) sendLen = wsaBuf.len - i2;
+                    if (len - totalLen < sendLen) sendLen = len - totalLen;
+                    char* sendArr = (char*) malloc(sendLen);
+                    if (sendArr) {
+                        memcpy(sendArr, &wsaBuf.buf[i2], sendLen);
+                        pipe->sendData(sendArr, sendLen);
+                    }
+                    i2 += sendLen;
+                    totalLen += sendLen;
                 }
             }
+        }
+        pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+        if (pausedThread) SuspendThread(pausedThread);
+        pauseThread = false;
+        if (singleStep) {
+            pauseThread = true;
+            singleStep = false;
         }
     }
 }
@@ -100,8 +160,29 @@ void hookRecvStart(SIZE_T* stack) {
 }
 
 void hookRecvEnd() {
-    if (buf) {
-        
+    if (buf && pauseThread) {
+        const char packetContentCode[] = { PACKET_CONTENT };
+        pipe->sendData((char*)packetContentCode, 1);
+        char* lenArr = reinterpret_cast<char*>(&len);
+        pipe->sendData(lenArr, sizeof(int));
+        int i(0);
+        while (i < len) {
+            int sendLen = BUFF_LEN;
+            if (len - i < sendLen) sendLen = len - i;
+            char* sendArr = (char*)malloc(sendLen);
+            if (sendArr) {
+                memcpy(sendArr, &buf[i], sendLen);
+                pipe->sendData(sendArr, sendLen);
+            }
+            i += sendLen;
+        }
+        pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+        if (pausedThread) SuspendThread(pausedThread);
+        pauseThread = false;
+        if (singleStep) {
+            pauseThread = true;
+            singleStep = false;
+        }
     }
 }
 
@@ -135,13 +216,15 @@ void hookWSASend(SIZE_T* stack) {
 
 void hookSend(SIZE_T* stack) {
     SOCKET s = stack[0];
-    struct sockaddr_in addr;
+    buf = (char*) stack[1];
+    len = (int)stack[2];
+    struct sockaddr_in6 addr;
     memset(&addr, 0, sizeof(addr));
     int nameLen = sizeof(addr);
     if (!getpeername(s, (struct sockaddr*)&addr, &nameLen)) {
         char ip[16];
-        inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
-        unsigned int port = ntohs(addr.sin_port);
+        inet_ntop(AF_INET, &addr.sin6_addr, ip, sizeof(ip));
+        unsigned int port = ntohs(addr.sin6_port);
         const char packet_info[] = { PACKET_INFO };
         char* portArr = reinterpret_cast<char*>(&port);
         const char received[] = { false };
@@ -149,6 +232,30 @@ void hookSend(SIZE_T* stack) {
         pipe->sendData((char*)received, sizeof(bool));
         pipe->sendData(ip, 16);
         pipe->sendData(portArr, sizeof(unsigned int));
+        if (pauseThread) {
+            const char packetContentCode[] = { PACKET_CONTENT };
+            pipe->sendData((char*)packetContentCode, 1);
+            char* lenArr = reinterpret_cast<char*>(&len);
+            pipe->sendData(lenArr, sizeof(int));
+            int i(0);
+            while (i < len) {
+                int sendLen = BUFF_LEN;
+                if (len - i < sendLen) sendLen = len - i;
+                char* sendArr = (char*)malloc(sendLen);
+                if (sendArr) {
+                    memcpy(sendArr, &buf[i], sendLen);
+                    pipe->sendData(sendArr, sendLen);
+                }
+                i += sendLen;
+            }
+            pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+            if (pausedThread) SuspendThread(pausedThread);
+            pauseThread = false;
+            if (singleStep) {
+                pauseThread = true;
+                singleStep = false;
+            }
+        }
     }
     else {
         lpNumberOfBytesRecvd = NULL;
@@ -234,7 +341,10 @@ void initHooks() {
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
-        if(initPipe()) initHooks();
+        if (initPipe()) {
+            initHooks();
+            CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&receiverThread, NULL, NULL, NULL);
+        }
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:

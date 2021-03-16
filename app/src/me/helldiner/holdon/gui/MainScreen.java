@@ -23,6 +23,7 @@ import me.helldiner.holdon.gui.component.PacketAsciiEditor;
 import me.helldiner.holdon.gui.component.PacketConsole;
 import me.helldiner.holdon.gui.component.PacketHexEditor;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
+import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.hook.NetHooksListener;
 
 public class MainScreen extends JPanel implements ComponentListener, NetHooksListener {
@@ -48,6 +49,7 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		this.initPacketConsole();
 		this.initPacketHexEditor();
 		this.initPacketAsciiEditor();
+		this.packetConsole.setPacketEditor(this.packetHexEditor);
 		this.packetHexEditor.setTextAreaListener(this.packetAsciiEditor);
 		this.packetAsciiEditor.setTextAreaListener(this.packetHexEditor);
 	}
@@ -127,8 +129,18 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 	}
 	
 	@Override
+	public void onNetHooksInjection(NetHooksHandler netHooksHandler) {
+		this.packetConsole.setNetHooksHandler(netHooksHandler);
+	}
+	
+	@Override
 	public void onPacketInfoReceived(String ip, int port, boolean received) {
 		this.packetConsole.addPacket(ip+":"+port, received);
+	}
+	
+	@Override
+	public void onPacketBytesReceived(char[] packet) {
+		this.packetHexEditor.setPacket(packet);
 	}
 	
 	@Override

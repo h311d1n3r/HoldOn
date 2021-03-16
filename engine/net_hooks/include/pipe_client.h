@@ -8,6 +8,7 @@ public:
 	~PipeClient();
 	bool sendData(char* buf, ULONG len);
 	int readData(char* buf);
+	bool waitingData();
 private:
 	HANDLE hPipe = NULL;
 	bool initPipe();

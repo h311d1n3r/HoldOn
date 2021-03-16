@@ -84,3 +84,13 @@ int PipeClient::readData(char* buf) {
     #endif
     return -1;
 }
+
+bool PipeClient::waitingData() {
+    DWORD total_available_bytes;
+    if (PeekNamedPipe(hPipe, 0, 0, 0, &total_available_bytes, 0)) {
+        if (total_available_bytes > 0) {
+            return true;
+        }
+    }
+    return false;
+}

@@ -41,7 +41,8 @@ public class PacketAsciiEditor extends PacketEditor {
 
 	@Override
 	public void setPacket(char[] packet) {
-		String text = new String(packet);
+		String text = "";
+		if(packet != null) text = new String(packet);
 		LimitedTextAreaDoc doc = (LimitedTextAreaDoc) super.textArea.getDocument();
 		doc.setLimit(text.length());
 		super.textArea.setText(text);

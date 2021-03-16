@@ -42,9 +42,13 @@ public class PacketHexEditor extends PacketEditor {
 	@Override
 	public void setPacket(char[] packet) {
 		String hexCode = "";
-		for(int i = 0; i < packet.length; i++) {
-			hexCode += Integer.toHexString(packet[i]);
-			if(i != packet.length-1) hexCode += " ";
+		if(packet != null) {
+			for(int i = 0; i < packet.length; i++) {
+				String hex = Integer.toHexString(packet[i]);
+				if(hex.length() == 1) hex = "0"+hex;
+				hexCode += hex;
+				if(i != packet.length-1) hexCode += " ";
+			}
 		}
 		HexTextAreaDoc doc = (HexTextAreaDoc) super.textArea.getDocument();
 		doc.setLimit(hexCode.length());

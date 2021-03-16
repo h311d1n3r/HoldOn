@@ -18,18 +18,18 @@ extern "C" {
 	/*
 	 * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
 	 * Method:    tick
-	 * Signature: (Lme/helldiner/holdon/hook/NetHooksHandler;)V
+	 * Signature: (Lme/helldiner/holdon/hook/NetHooksHandler;I)V
 	 */
 	JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_tick
-	(JNIEnv*, jobject, jobject);
+	(JNIEnv*, jobject, jobject, jbyte);
 
 	/*
 	 * Class:     me_helldiner_holdon_hook_NetHooksHandler_PipeHandler
 	 * Method:    sendPacketBytes
-	 * Signature: (I)V
+	 * Signature: ([C)V
 	 */
 	JNIEXPORT void JNICALL Java_me_helldiner_holdon_hook_NetHooksHandler_00024PipeHandler_sendPacketBytes
-	(JNIEnv*, jobject, jint);
+	(JNIEnv*, jobject, jcharArray);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,10 @@
 #define SYNC 1
-#define SHARED_FILES_DIR 2
-#define PACKET_INFO 3
-#define PACKET_CONTENT 4
-#define DISCONNECT 5
+#define PACKET_INFO 2
+#define PACKET_CONTENT 3
+#define PAUSE_THREAD 4
+#define CONTINUE_THREAD 5
+#define SINGLE_STEP 6
+#define DISCONNECT 7
 
 #define BUFF_LEN 1024
 

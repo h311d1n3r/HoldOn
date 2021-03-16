@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -16,6 +18,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import me.helldiner.holdon.gui.ScreenListener;
+import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.utils.Utils;
 
 public class PacketConsole extends JPanel implements ScreenListener {
@@ -24,6 +27,8 @@ public class PacketConsole extends JPanel implements ScreenListener {
 	
 	private Container parent;
 	private JPanel packetsLoggerContainer;
+	private NetHooksHandler netHooksHandler;
+	private PacketEditor editor;
 
 	public PacketConsole(Container parent) {
 		this.parent = parent;
@@ -62,6 +67,8 @@ public class PacketConsole extends JPanel implements ScreenListener {
 						component.setLocation(component.getX(), component.getY()-30);
 					}
 				}
+				packetsLoggerContainer.revalidate();
+				packetsLoggerContainer.repaint();
 			}
 		});
 	}
@@ -87,8 +94,41 @@ public class PacketConsole extends JPanel implements ScreenListener {
 		this.add(bar);
 	}
 	
-	private JButton initActionBarButton(String imgName) {
-		String path = "./res/img/"+imgName+".png";
+	private ActionListener actionBarButtonListener = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			Object component = e.getSource();
+			if(component instanceof JButton) {
+				JButton button = (JButton) component;
+				switch(button.getName()) {
+					case "play":
+						if(netHooksHandler != null && editor != null) {
+							if(editor.getPacket() != null) netHooksHandler.setPacketBytes(editor.getPacket());
+							editor.setPacket(null);
+							netHooksHandler.continueThread();
+						}
+						break;
+					case "single_step":
+						if(netHooksHandler != null && editor != null) {
+							if(editor.getPacket() != null) netHooksHandler.setPacketBytes(editor.getPacket());
+							editor.setPacket(null);
+							netHooksHandler.singleStep();
+						}
+						break;
+					case "pause":
+						if(netHooksHandler != null) {
+							netHooksHandler.pauseThread();
+						}
+						break;
+					case "close":
+						break;
+				}
+			}
+		}
+	};
+	
+	private JButton initActionBarButton(String name) {
+		String path = "./res/img/"+name+".png";
 		if(Utils.isRunningFromJar()) path = path.substring(1);
 		Image icon = new ImageIcon(path).getImage();
 		icon = icon.getScaledInstance(20, 20, Image.SCALE_SMOOTH);
@@ -97,6 +137,8 @@ public class PacketConsole extends JPanel implements ScreenListener {
 		button.setSize(20,20);
 		button.setBackground(null);
 		button.setFocusPainted(false);
+		button.setName(name);
+		button.addActionListener(this.actionBarButtonListener);
 		return button;
 	}
 	
@@ -109,9 +151,17 @@ public class PacketConsole extends JPanel implements ScreenListener {
 		this.add(this.packetsLoggerContainer);
 	}
 
+	public void setNetHooksHandler(NetHooksHandler handler) {
+		this.netHooksHandler = handler;
+	}
+	
 	@Override
 	public void onScreenResized() {
 		this.setSize(this.getWidth(), this.parent.getHeight()-52);
+	}
+	
+	public void setPacketEditor(PacketEditor editor) {
+		this.editor = editor;
 	}
 	
 }
