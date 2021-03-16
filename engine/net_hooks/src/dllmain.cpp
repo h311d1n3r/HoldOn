@@ -17,6 +17,7 @@ PipeClient *pipe = NULL;
 bool pauseThread = false;
 HANDLE pausedThread;
 bool singleStep = false;
+bool wsaPacket = false;
 
 void receiverThread() {
     while (true) {
@@ -38,7 +39,9 @@ void receiverThread() {
                                 memcpy(&packet[i], msg, bufferLen);
                                 i += bufferLen;
                             }
-                            memcpy(buf,packet,packetLen);
+                            if (wsaPacket) {
+
+                            } else memcpy(buf,packet,packetLen);
                         }
                     }
                     break;
@@ -58,6 +61,7 @@ void receiverThread() {
 }
 
 void hookWSARecvStart(SIZE_T* stack) {
+    wsaPacket = true;
     maxLen = 0;
     SOCKET s = stack[0];
     struct sockaddr_in addr;
@@ -118,18 +122,19 @@ void hookWSARecvEnd() {
                     totalLen += sendLen;
                 }
             }
-        }
-        pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
-        if (pausedThread) SuspendThread(pausedThread);
-        pauseThread = false;
-        if (singleStep) {
-            pauseThread = true;
-            singleStep = false;
+            pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+            if (pausedThread) SuspendThread(pausedThread);
+            pauseThread = false;
+            if (singleStep) {
+                pauseThread = true;
+                singleStep = false;
+            }
         }
     }
 }
 
 void hookRecvStart(SIZE_T* stack) {
+    wsaPacket = false;
     SOCKET s = stack[0];
     buf = (char*) stack[1];
     len = stack[2];
@@ -187,6 +192,7 @@ void hookRecvEnd() {
 }
 
 void hookWSASend(SIZE_T* stack) {
+    wsaPacket = true;
     SOCKET s = stack[0];
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -215,6 +221,7 @@ void hookWSASend(SIZE_T* stack) {
 }
 
 void hookSend(SIZE_T* stack) {
+    wsaPacket = false;
     SOCKET s = stack[0];
     buf = (char*) stack[1];
     len = (int)stack[2];
