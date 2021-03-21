@@ -177,7 +177,7 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 						String processPath = processStr.substring(0,processStr.indexOf("|"));
 						File file = new File(processPath);
 						Icon icon = null;
-						if(file.exists()) {
+						if(file.exists() && file.canRead()) {
 							ShellFolder sf = ShellFolder.getShellFolder(file);
 							icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, Image.SCALE_SMOOTH));
 						}

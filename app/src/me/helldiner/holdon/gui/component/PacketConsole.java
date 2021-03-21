@@ -29,6 +29,8 @@ public class PacketConsole extends JPanel implements ScreenListener {
 	private JPanel packetsLoggerContainer;
 	private NetHooksHandler netHooksHandler;
 	private PacketEditor editor;
+	private boolean isThreadPaused = false;
+	private boolean areButtonsEnabled = true;
 
 	public PacketConsole(Container parent) {
 		this.parent = parent;
@@ -98,26 +100,33 @@ public class PacketConsole extends JPanel implements ScreenListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			Object component = e.getSource();
-			if(component instanceof JButton) {
+			if(component instanceof JButton && areButtonsEnabled) {
 				JButton button = (JButton) component;
 				switch(button.getName()) {
 					case "play":
-						if(netHooksHandler != null && editor != null) {
+						if(netHooksHandler != null && editor != null && isThreadPaused) {
 							if(editor.getPacket() != null) netHooksHandler.setPacketBytes(editor.getPacket());
 							editor.setPacket(null);
 							netHooksHandler.continueThread();
+							isThreadPaused = false;
 						}
 						break;
 					case "single_step":
-						if(netHooksHandler != null && editor != null) {
+						if(netHooksHandler != null && editor != null && isThreadPaused) {
 							if(editor.getPacket() != null) netHooksHandler.setPacketBytes(editor.getPacket());
 							editor.setPacket(null);
 							netHooksHandler.singleStep();
+							editor.setPacket("Loading packet...".toCharArray());
+							isThreadPaused = true;
+							areButtonsEnabled = false;
 						}
 						break;
 					case "pause":
-						if(netHooksHandler != null) {
+						if(netHooksHandler != null && !isThreadPaused) {
 							netHooksHandler.pauseThread();
+							editor.setPacket("Loading packet...".toCharArray());
+							isThreadPaused = true;
+							areButtonsEnabled = false;
 						}
 						break;
 					case "close":
@@ -126,6 +135,10 @@ public class PacketConsole extends JPanel implements ScreenListener {
 			}
 		}
 	};
+	
+	public void onPacketReceived() {
+		this.areButtonsEnabled = true;
+	}
 	
 	private JButton initActionBarButton(String name) {
 		String path = "./res/img/"+name+".png";

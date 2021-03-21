@@ -22,6 +22,7 @@ import me.helldiner.holdon.gui.component.CenteredJMenu;
 import me.helldiner.holdon.gui.component.PacketAsciiEditor;
 import me.helldiner.holdon.gui.component.PacketConsole;
 import me.helldiner.holdon.gui.component.PacketHexEditor;
+import me.helldiner.holdon.gui.component.PacketTransmissionGraph;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
 import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.hook.NetHooksListener;
@@ -34,6 +35,7 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 	private PacketConsole packetConsole;
 	private PacketHexEditor packetHexEditor;
 	private PacketAsciiEditor packetAsciiEditor;
+	private PacketTransmissionGraph packetTransmissionGraph;
 
 	public MainScreen(IWindow window) {
 		window.setSize(1f, 1f, true);
@@ -49,6 +51,7 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		this.initPacketConsole();
 		this.initPacketHexEditor();
 		this.initPacketAsciiEditor();
+		this.initPacketTransmissionGraph();
 		this.packetConsole.setPacketEditor(this.packetHexEditor);
 		this.packetHexEditor.setTextAreaListener(this.packetAsciiEditor);
 		this.packetAsciiEditor.setTextAreaListener(this.packetHexEditor);
@@ -128,6 +131,14 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		this.add(this.packetAsciiEditor);
 	}
 	
+	private void initPacketTransmissionGraph() {
+		this.packetTransmissionGraph = new PacketTransmissionGraph(this);
+		this.screenListeners.add(this.packetTransmissionGraph);
+		this.packetTransmissionGraph.setLocation(getWidth()-getWidth()/6-10, 40);
+		this.packetTransmissionGraph.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		this.add(this.packetTransmissionGraph);
+	}
+	
 	@Override
 	public void onNetHooksInjection(NetHooksHandler netHooksHandler) {
 		this.packetConsole.setNetHooksHandler(netHooksHandler);
@@ -136,11 +147,13 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 	@Override
 	public void onPacketInfoReceived(String ip, int port, boolean received) {
 		this.packetConsole.addPacket(ip+":"+port, received);
+		this.packetTransmissionGraph.onPacketReceived();
 	}
 	
 	@Override
 	public void onPacketBytesReceived(char[] packet) {
 		this.packetHexEditor.setPacket(packet);
+		this.packetConsole.onPacketReceived();
 	}
 	
 	@Override
