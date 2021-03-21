@@ -10,7 +10,7 @@
 SIZE_T maxLen;
 LPWSABUF lpBuffers;
 DWORD dwBufferCount;
-LPDWORD lpNumberOfBytesRecvd;
+LPDWORD lpNumberOfBytes;
 char* buf;
 int len;
 PipeClient *pipe = NULL;
@@ -40,7 +40,14 @@ void receiverThread() {
                                 i += bufferLen;
                             }
                             if (wsaPacket) {
-
+                                SIZE_T wsaTotal(0);
+                                for (int i(0); i < dwBufferCount && wsaTotal < packetLen; i++) {
+                                    WSABUF wsaBuf = lpBuffers[i];
+                                    SIZE_T wsaLen = wsaBuf.len;
+                                    if (packetLen - wsaTotal < wsaLen) wsaLen = packetLen - wsaTotal;
+                                    memcpy(wsaBuf.buf, &packet[wsaTotal], wsaLen);
+                                    wsaTotal += wsaLen;
+                                }
                             } else memcpy(buf,packet,packetLen);
                         }
                     }
@@ -57,6 +64,64 @@ void receiverThread() {
                 }
             }
         }
+    }
+}
+
+void doPauseThread() {
+    pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+    if (pausedThread) SuspendThread(pausedThread);
+    pauseThread = false;
+    if (singleStep) {
+        pauseThread = true;
+        singleStep = false;
+    }
+}
+
+void sendWSAPacket(DWORD len) {
+    if (len <= maxLen && pauseThread) {
+        const char packetContentCode[] = { PACKET_CONTENT };
+        pipe->sendData((char*)packetContentCode, 1);
+        char* lenArr = reinterpret_cast<char*>(&len);
+        pipe->sendData(lenArr, sizeof(int));
+        int totalLen = 0;
+        for (int i(0); i < dwBufferCount && totalLen < len; i++) {
+            WSABUF wsaBuf = lpBuffers[i];
+            int i2(0);
+            while (i2 < wsaBuf.len && totalLen < len) {
+                int sendLen = BUFF_LEN;
+                if (wsaBuf.len - i2 < sendLen) sendLen = wsaBuf.len - i2;
+                if (len - totalLen < sendLen) sendLen = len - totalLen;
+                char* sendArr = (char*)malloc(sendLen);
+                if (sendArr) {
+                    memcpy(sendArr, &wsaBuf.buf[i2], sendLen);
+                    pipe->sendData(sendArr, sendLen);
+                }
+                i2 += sendLen;
+                totalLen += sendLen;
+            }
+        }
+        doPauseThread();
+    }
+}
+
+void sendNotWsaPacket() {
+    if (buf && pauseThread) {
+        const char packetContentCode[] = { PACKET_CONTENT };
+        pipe->sendData((char*)packetContentCode, 1);
+        char* lenArr = reinterpret_cast<char*>(&len);
+        pipe->sendData(lenArr, sizeof(int));
+        int i(0);
+        while (i < len) {
+            int sendLen = BUFF_LEN;
+            if (len - i < sendLen) sendLen = len - i;
+            char* sendArr = (char*)malloc(sendLen);
+            if (sendArr) {
+                memcpy(sendArr, &buf[i], sendLen);
+                pipe->sendData(sendArr, sendLen);
+            }
+            i += sendLen;
+        }
+        doPauseThread();
     }
 }
 
@@ -77,7 +142,7 @@ void hookWSARecvStart(SIZE_T* stack) {
             WSABUF wsaBuf = lpBuffers[i];
             maxLen += wsaBuf.len;
         }
-        lpNumberOfBytesRecvd = (LPDWORD)stack[3];
+        lpNumberOfBytes = (LPDWORD)stack[3];
         const char packet_info[] = { PACKET_INFO };
         char* portArr = reinterpret_cast<char*>(&port);
         const char received[] = { true };
@@ -87,7 +152,7 @@ void hookWSARecvStart(SIZE_T* stack) {
         pipe->sendData(portArr, sizeof(unsigned int));
     }
     else {
-        lpNumberOfBytesRecvd = NULL;
+        lpNumberOfBytes = NULL;
         #ifdef DBG
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 12);
@@ -98,38 +163,9 @@ void hookWSARecvStart(SIZE_T* stack) {
 }
 
 void hookWSARecvEnd() {
-    if (lpNumberOfBytesRecvd) {
-        DWORD len = *lpNumberOfBytesRecvd;
-        if (len <= maxLen && pauseThread) {
-            const char packetContentCode[] = { PACKET_CONTENT };
-            pipe->sendData((char*) packetContentCode, 1);
-            char* lenArr = reinterpret_cast<char*>(&len);
-            pipe->sendData(lenArr, sizeof(int));
-            int totalLen = 0;
-            for (int i(0); i < dwBufferCount && totalLen < len; i++) {
-                WSABUF wsaBuf = lpBuffers[i];
-                int i2(0);
-                while (i2 < wsaBuf.len && totalLen < len) {
-                    int sendLen = BUFF_LEN;
-                    if (wsaBuf.len - i2 < sendLen) sendLen = wsaBuf.len - i2;
-                    if (len - totalLen < sendLen) sendLen = len - totalLen;
-                    char* sendArr = (char*) malloc(sendLen);
-                    if (sendArr) {
-                        memcpy(sendArr, &wsaBuf.buf[i2], sendLen);
-                        pipe->sendData(sendArr, sendLen);
-                    }
-                    i2 += sendLen;
-                    totalLen += sendLen;
-                }
-            }
-            pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
-            if (pausedThread) SuspendThread(pausedThread);
-            pauseThread = false;
-            if (singleStep) {
-                pauseThread = true;
-                singleStep = false;
-            }
-        }
+    if (lpNumberOfBytes) {
+        DWORD len = *lpNumberOfBytes;
+        sendWSAPacket(len);
     }
 }
 
@@ -154,7 +190,7 @@ void hookRecvStart(SIZE_T* stack) {
         pipe->sendData(portArr, sizeof(unsigned int));
     }
     else {
-        lpNumberOfBytesRecvd = NULL;
+        lpNumberOfBytes = NULL;
         #ifdef DBG
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 12);
@@ -165,30 +201,7 @@ void hookRecvStart(SIZE_T* stack) {
 }
 
 void hookRecvEnd() {
-    if (buf && pauseThread) {
-        const char packetContentCode[] = { PACKET_CONTENT };
-        pipe->sendData((char*)packetContentCode, 1);
-        char* lenArr = reinterpret_cast<char*>(&len);
-        pipe->sendData(lenArr, sizeof(int));
-        int i(0);
-        while (i < len) {
-            int sendLen = BUFF_LEN;
-            if (len - i < sendLen) sendLen = len - i;
-            char* sendArr = (char*)malloc(sendLen);
-            if (sendArr) {
-                memcpy(sendArr, &buf[i], sendLen);
-                pipe->sendData(sendArr, sendLen);
-            }
-            i += sendLen;
-        }
-        pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
-        if (pausedThread) SuspendThread(pausedThread);
-        pauseThread = false;
-        if (singleStep) {
-            pauseThread = true;
-            singleStep = false;
-        }
-    }
+    sendNotWsaPacket();
 }
 
 void hookWSASend(SIZE_T* stack) {
@@ -208,9 +221,17 @@ void hookWSASend(SIZE_T* stack) {
         pipe->sendData((char*)received, sizeof(bool));
         pipe->sendData(ip, 16);
         pipe->sendData(portArr, sizeof(unsigned int));
+        lpBuffers = (LPWSABUF) stack[1];
+        dwBufferCount = stack[2];
+        maxLen = 0;
+        for (int i(0); i < dwBufferCount; i++) {
+            WSABUF wsaBuf = lpBuffers[i];
+            maxLen += wsaBuf.len;
+        }
+        sendWSAPacket(maxLen);
     }
     else {
-        lpNumberOfBytesRecvd = NULL;
+        lpNumberOfBytes = NULL;
         #ifdef DBG
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 12);
@@ -223,8 +244,6 @@ void hookWSASend(SIZE_T* stack) {
 void hookSend(SIZE_T* stack) {
     wsaPacket = false;
     SOCKET s = stack[0];
-    buf = (char*) stack[1];
-    len = (int)stack[2];
     struct sockaddr_in6 addr;
     memset(&addr, 0, sizeof(addr));
     int nameLen = sizeof(addr);
@@ -239,33 +258,12 @@ void hookSend(SIZE_T* stack) {
         pipe->sendData((char*)received, sizeof(bool));
         pipe->sendData(ip, 16);
         pipe->sendData(portArr, sizeof(unsigned int));
-        if (pauseThread) {
-            const char packetContentCode[] = { PACKET_CONTENT };
-            pipe->sendData((char*)packetContentCode, 1);
-            char* lenArr = reinterpret_cast<char*>(&len);
-            pipe->sendData(lenArr, sizeof(int));
-            int i(0);
-            while (i < len) {
-                int sendLen = BUFF_LEN;
-                if (len - i < sendLen) sendLen = len - i;
-                char* sendArr = (char*)malloc(sendLen);
-                if (sendArr) {
-                    memcpy(sendArr, &buf[i], sendLen);
-                    pipe->sendData(sendArr, sendLen);
-                }
-                i += sendLen;
-            }
-            pausedThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
-            if (pausedThread) SuspendThread(pausedThread);
-            pauseThread = false;
-            if (singleStep) {
-                pauseThread = true;
-                singleStep = false;
-            }
-        }
+        buf = (char*)stack[1];
+        len = (int)stack[2];
+        sendNotWsaPacket();
     }
     else {
-        lpNumberOfBytesRecvd = NULL;
+        lpNumberOfBytes = NULL;
         #ifdef DBG
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 12);
