@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -13,27 +12,25 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.filechooser.FileSystemView;
 
 import me.helldiner.holdon.hook.Injector;
 import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.hook.NetHooksListener;
 import me.helldiner.holdon.main.Main;
 import me.helldiner.holdon.utils.Utils;
-import sun.awt.shell.ShellFolder;
 
 public class ProcessPickerWindow extends JFrame implements WindowListener {
 	
@@ -173,28 +170,23 @@ public class ProcessPickerWindow extends JFrame implements WindowListener {
 		for(String processStr : Injector.listProcesses()) {
 			if(processStr.length() != 0) {
 				if(processStr.contains("|")) {
-					try {
-						String processPath = processStr.substring(0,processStr.indexOf("|"));
-						File file = new File(processPath);
-						Icon icon = null;
-						if(file.exists() && file.canRead()) {
-							ShellFolder sf = ShellFolder.getShellFolder(file);
-							icon = new ImageIcon(sf.getIcon(true).getScaledInstance(15, 15, Image.SCALE_SMOOTH));
-						}
-						if(processPath.contains("\\")) {
-							String processName = processPath.substring(processPath.lastIndexOf("\\")+1);
-							int pid = Integer.parseInt(processStr.substring(processStr.lastIndexOf("|")+1));
-							JLabel label = new JLabel(processName+" - "+pid);
-							label.setName(""+pid);
-							label.setPreferredSize(new Dimension(scrollContainer.getWidth(),20));
-							if(icon != null) label.setIcon(icon);
-							label.setForeground(Color.WHITE);
-							label.setFont(new Font("Calibri",Font.PLAIN,16));
-							label.addMouseListener(labelListener);
-							scrollContainer.add(label);
-						}
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
+					String processPath = processStr.substring(0,processStr.indexOf("|"));
+					File file = new File(processPath);
+					Icon icon = null;
+					if(file.exists() && file.canRead()) {
+						icon = FileSystemView.getFileSystemView().getSystemIcon(file);
+					}
+					if(processPath.contains("\\")) {
+						String processName = processPath.substring(processPath.lastIndexOf("\\")+1);
+						int pid = Integer.parseInt(processStr.substring(processStr.lastIndexOf("|")+1));
+						JLabel label = new JLabel(processName+" - "+pid);
+						label.setName(""+pid);
+						label.setPreferredSize(new Dimension(scrollContainer.getWidth(),20));
+						if(icon != null) label.setIcon(icon);
+						label.setForeground(Color.WHITE);
+						label.setFont(new Font("Calibri",Font.PLAIN,16));
+						label.addMouseListener(labelListener);
+						scrollContainer.add(label);
 					}
 				}
 			}

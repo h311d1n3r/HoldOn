@@ -8,7 +8,9 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -142,9 +144,13 @@ public class PacketConsole extends JPanel implements ScreenListener {
 	
 	private JButton initActionBarButton(String name) {
 		String path = "./res/img/"+name+".png";
-		if(Utils.isRunningFromJar()) path = path.substring(1);
-		Image icon = new ImageIcon(path).getImage();
-		icon = icon.getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+		Image icon = null;
+		try {
+			icon = new ImageIcon(ImageIO.read(Utils.loadResource(path))).getImage();
+			icon = icon.getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		JButton button = new JButton(new ImageIcon(icon));
 		button.setBorder(new EmptyBorder(0,0,0,0));
 		button.setSize(20,20);
