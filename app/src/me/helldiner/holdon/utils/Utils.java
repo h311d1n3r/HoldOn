@@ -1,9 +1,12 @@
 package me.helldiner.holdon.utils;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class Utils {
 
@@ -22,6 +25,16 @@ public class Utils {
 	
 	public static final boolean isRunningFromJar() {
 		return Utils.class.getResource("Utils.class").toString().startsWith("jar:");
+	}
+	
+	public static void navToURL(String url) {
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+		    try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (IOException | URISyntaxException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 }

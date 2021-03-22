@@ -26,6 +26,7 @@ import me.helldiner.holdon.gui.component.PacketTransmissionGraph;
 import me.helldiner.holdon.gui.popup.ProcessPickerWindow;
 import me.helldiner.holdon.hook.NetHooksHandler;
 import me.helldiner.holdon.hook.NetHooksListener;
+import me.helldiner.holdon.utils.Utils;
 
 public class MainScreen extends JPanel implements ComponentListener, NetHooksListener {
 
@@ -65,6 +66,7 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 		bar.add(this.initMenu("File", new String[]{"Attach process..."},135));
 		bar.add(this.initMenu("Edit", new String[]{"Settings"},80));
 		bar.add(this.initMenu("Packet", new String[]{"Run","Pause","Stop"},66));
+		bar.add(this.initMenu("Support", new String[]{"Discord server...","Donate..."},135));
 		this.add(bar);
 	}
 	
@@ -100,6 +102,12 @@ public class MainScreen extends JPanel implements ComponentListener, NetHooksLis
 				switch(menuItemName) {
 					case "File|Attach process...":
 						new ProcessPickerWindow(MainScreen.this);
+					break;
+					case "Support|Discord server...":
+						Utils.navToURL("https://discord.gg/bNNWBnk");
+					break;
+					case "Support|Donate...":
+						Utils.navToURL("https://www.paypal.com/donate?hosted_button_id=FGPVL34PVQVZJ");
 					break;
 					default:
 				}
