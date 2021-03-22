@@ -1,5 +1,4 @@
 CC="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\Hostx64\x64\cl"
-ENV_SETUP_SCRIPT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat"
 
 UNIV_CRT_INC="C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt"
 UNIV_CRT_LIB="C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\ucrt\x64"
