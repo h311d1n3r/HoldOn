@@ -32,7 +32,7 @@ injector.dll: ./engine/injector/src/*.cpp
 			  mkdir -p ./engine/injector/obj
 			  $(CC) $(COMPILE_FLAGS) ./engine/injector/src/*.cpp -Fo"./engine/injector/obj/" -I"./engine/injector/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -I$(JNI_INC) -I$(JNI_MD_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -dll -out:./engine/injector/build/$@
 			  
-net_hooks.dll: ./engine/net_hooks/src/*.cpp
+net_hooks.dll: ./engine/net_hooks/src/*.cpp LetsHook.dll
 			   mkdir -p ./engine/net_hooks/build
 			   mkdir -p ./engine/net_hooks/obj
 			   $(CC) $(COMPILE_FLAGS) ./engine/net_hooks/src/*.cpp -Fo"./engine/net_hooks/obj/" -I"./engine/net_hooks/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -I$(SHARED_HEADERS_INC) -I$(LETSHOOK_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -LIBPATH:$(LETSHOOK_LIB) -dll -out:./engine/net_hooks/build/$@
