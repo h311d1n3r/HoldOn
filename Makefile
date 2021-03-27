@@ -21,22 +21,22 @@ HoldOn:	LetsHook.dll injector.dll net_hooks.dll pipe_server.dll HoldOn.jar
 		touch ./build/run.bat
 		echo "java -Xms1G -jar ./HoldOn.jar" > ./build/run.bat
 
-LetsHook.dll: ./LetsHook/src/*.cpp
+LetsHook.dll:
 			  mkdir -p ./LetsHook/build
 			  mkdir -p ./LetsHook/obj
 			  $(CC) $(COMPILE_FLAGS) ./LetsHook/src/*.cpp -Fo"./LetsHook/obj/" -I"./LetsHook/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -dll -out:./LetsHook/build/$@
 
-injector.dll: ./engine/injector/src/*.cpp
+injector.dll:
 			  mkdir -p ./engine/injector/build
 			  mkdir -p ./engine/injector/obj
 			  $(CC) $(COMPILE_FLAGS) ./engine/injector/src/*.cpp -Fo"./engine/injector/obj/" -I"./engine/injector/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -I$(JNI_INC) -I$(JNI_MD_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -dll -out:./engine/injector/build/$@
 			  
-net_hooks.dll: ./engine/net_hooks/src/*.cpp LetsHook.dll
+net_hooks.dll: LetsHook.dll
 			   mkdir -p ./engine/net_hooks/build
 			   mkdir -p ./engine/net_hooks/obj
 			   $(CC) $(COMPILE_FLAGS) ./engine/net_hooks/src/*.cpp -Fo"./engine/net_hooks/obj/" -I"./engine/net_hooks/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -I$(SHARED_HEADERS_INC) -I$(LETSHOOK_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -LIBPATH:$(LETSHOOK_LIB) -dll -out:./engine/net_hooks/build/$@
 
-pipe_server.dll: ./engine/pipe_server/src/*.cpp
+pipe_server.dll:
 			     mkdir -p ./engine/pipe_server/build
 			     mkdir -p ./engine/pipe_server/obj
 			     $(CC) $(COMPILE_FLAGS) ./engine/pipe_server/src/*.cpp -Fo"./engine/pipe_server/obj/" -I"./engine/pipe_server/include" -I"$(INCLUDE)" -I$(UNIV_CRT_INC) -I$(SHARED_HEADERS_INC) -I$(JNI_INC) -I$(JNI_MD_INC) -link -LIBPATH:"$(LIBPATH)" -LIBPATH:$(UNIV_CRT_LIB) -dll -out:./engine/pipe_server/build/$@
