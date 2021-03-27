@@ -45,8 +45,7 @@ HoldOn.jar:
 			mkdir ./app/class
 			mkdir ./app/build
 			javac -d ./app/class -sourcepath ./app/src ./app/src/me/helldiner/holdon/main/Main.java
-			jar cfe ./app/build/HoldOn.jar me.helldiner.holdon.main.Main -C ./app/class .
-			cd ./app;zip -ur ./build/HoldOn.jar ./res;cd ..
+			jar cfe ./app/build/HoldOn.jar me.helldiner.holdon.main.Main -C ./app/class . -C ./app res
 			  
 clean:
 	rm -rf ./LetsHook/build/
