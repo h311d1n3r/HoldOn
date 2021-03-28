@@ -2,16 +2,16 @@
 ## Description
 ***HoldOn*** is a **Windows x64** software designed to intercept and edit network packets before their sending/delivery from/to a process.
 ## Requirements
-- You must have installed the [Visual Studio 2019 packages](https://visualstudio.microsoft.com/fr/downloads/)  
-- You must have installed the [MinGW msys compiler packages](https://sourceforge.net/projects/mingw/)  
-- You must have installed the [Java SE Development Kit 8](https://www.oracle.com/fr/java/technologies/javase/javase-jdk8-downloads.html)  
-- You must have configured your **environment variables** the following way:  
+- You must have installed the [Visual Studio 2019 packages](https://visualstudio.microsoft.com/fr/downloads/).  
+- You must have installed the [MinGW msys compiler packages](https://sourceforge.net/projects/mingw/).  
+- You must have installed the [Java SE Development Kit 8](https://www.oracle.com/fr/java/technologies/javase/javase-jdk8-downloads.html).  
+- You must have configured your **environment variables** the following way :  
   - **JAVA_HOME**: Must contain `*\Java\jdk8XXXX-XXX\`  
   - **Path**: Must contain `*\MinGW\msys\1.0\bin\` and `%JAVA_HOME%\bin\`
 ## Configuration
-- **prepare_env.bat** :
+- `prepare_env.bat` :
   - You must set **WIN_KITS_VERSION** to the name of the directory located under `*\Windows Kits\XX\Include\` and that contains a directory named `ucrt`.  
-- **Makefile** :
+- `Makefile` :
   - You must set **MSVC_VERSION** to the name of the directory located under `*\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\`  
   - You must set **WIN_KITS_VERSION** to the name of the directory located under `*\Windows Kits\XX\Include\` and that contains a directory named `ucrt`.
 ## Compilation
