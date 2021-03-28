@@ -23,7 +23,7 @@
 1. From ***HoldOn*** root directory, get into `.\build`
 2. Start `run.bat`
 ## How to use
-1. The first thing to do after ***HoldOn*** is started, is to **attach to the process of your choice**.
+1. The first thing to do after ***HoldOn*** is started, is to **attach to the 64-bit process of your choice**.
 2. If the process sends or receives network packets, **you should see them in the console (left panel) and the graph (top right panel)**.
 3. To start editing them, you need to **press the pause button** (<img src="https://github.com/HellDiner/HoldOn/blob/main/app/res/img/pause.png" width="13" alt="Pause button image" title="Pause button">) and **wait for the next packet to load**.
 4. Then, you can edit the packet by **changing values in both the HEX and ASCII panels**.
