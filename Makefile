@@ -1,7 +1,10 @@
-CC="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\Hostx64\x64\cl"
+MSVC_VERSION=14.28.29333
+WIN_KITS_VERSION=10.0.18362.0
 
-UNIV_CRT_INC="C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt"
-UNIV_CRT_LIB="C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\ucrt\x64"
+CC="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\$(MSVC_VERSION)\bin\Hostx64\x64\cl"
+
+UNIV_CRT_INC="C:\Program Files (x86)\Windows Kits\10\Include\$(MSVC_VERSION)\ucrt"
+UNIV_CRT_LIB="C:\Program Files (x86)\Windows Kits\10\Lib\$(MSVC_VERSION)\ucrt\x64"
 JNI_INC="$(JAVA_HOME)\include"
 JNI_MD_INC="$(JAVA_HOME)\include\win32"
 
