@@ -28,6 +28,8 @@
 3. To start editing them, you need to **press the pause button** (<img src="https://github.com/HellDiner/HoldOn/blob/main/app/res/img/pause.png" width="13" alt="Pause button image" title="Pause button">) and **wait for the next packet to load**.
 4. Then, you can edit the packet by **changing values in both the HEX and ASCII panels**.
 5. Finally, you need to resume the process **by pressing the resume button** (<img src="https://github.com/HellDiner/HoldOn/blob/main/app/res/img/play.png" width="13" alt="Resume button image" title="Resume button">) or wait for the next packet to load **by pressing the single-step button** (<img src="https://github.com/HellDiner/HoldOn/blob/main/app/res/img/single_step.png" width="13" alt="Single-step button image" title="Single-step button">).
+## Warning
+**This software must only be used to carry out lawful experiments and I am not responsible for any breach of this rule !**
 ## Support
 ### Discord support server
 **If you need any help with the software, please join the [Discord support server](https://discord.gg/bNNWBnk).**
