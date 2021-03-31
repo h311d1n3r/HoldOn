@@ -3,7 +3,7 @@
 ***HoldOn*** is a **Windows x64** software designed to intercept and edit network packets before their sending/delivery from/to a process.
 ## Requirements
 - You must have installed the [Visual Studio 2019 packages](https://visualstudio.microsoft.com/fr/downloads/).  
-- You must have installed the [MinGW msys compiler packages](https://sourceforge.net/projects/mingw/).  
+- You must have installed the [MinGW msys packages](https://sourceforge.net/projects/mingw/).  
 - You must have installed the [Java SE Development Kit 8](https://www.oracle.com/fr/java/technologies/javase/javase-jdk8-downloads.html).  
 - You must have configured your **environment variables** the following way :  
   - **JAVA_HOME**: Must contain `*\Java\jdk8XXXX-XXX\`  
